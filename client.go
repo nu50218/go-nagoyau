@@ -32,7 +32,7 @@ func NewClient(username, password string, services ...Service) (*http.Client, er
 		return nil, fmt.Errorf("GET時のステータスコードが異常です: %d", res.StatusCode)
 	}
 
-	doc, err := goquery.NewDocumentFromResponse(res)
+	doc, err := goquery.NewDocumentFromReader(res.Body)
 	if err != nil {
 		return nil, err
 	}
