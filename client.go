@@ -36,7 +36,7 @@ func NewClient(username, password string, services ...Service) (*http.Client, er
 		return nil, makeHTTPError(res.StatusCode, http.MethodGet, loginAuthURL)
 	}
 
-	doc, err := goquery.NewDocumentFromResponse(res)
+	doc, err := goquery.NewDocumentFromReader(res.Body)
 	if err != nil {
 		return nil, err
 	}
