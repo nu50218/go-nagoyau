@@ -12,6 +12,10 @@ import (
 
 const loginAuthURL = "https://auth.nagoya-u.ac.jp/cas/login"
 
+func makeHTTPError(statusCode int, method, url string) error {
+	return fmt.Errorf("ステータスコードが異常です: %d (Method: %s, URL: %s)", statusCode, method, url)
+}
+
 // NewClient servicesで指定した名古屋大学のサービスにログイン済みの*http.Clientを返してくれます
 func NewClient(username, password string, services ...Service) (*http.Client, error) {
 	jar, err := cookiejar.New(nil)
@@ -29,7 +33,7 @@ func NewClient(username, password string, services ...Service) (*http.Client, er
 	}
 	defer res.Body.Close()
 	if res.StatusCode >= 300 {
-		return nil, fmt.Errorf("GET時のステータスコードが異常です: %d", res.StatusCode)
+		return nil, makeHTTPError(res.StatusCode, http.MethodGet, loginAuthURL)
 	}
 
 	doc, err := goquery.NewDocumentFromResponse(res)
@@ -56,20 +60,21 @@ func NewClient(username, password string, services ...Service) (*http.Client, er
 	}
 	defer res.Body.Close()
 	if res.StatusCode >= 300 {
-		return nil, fmt.Errorf("POST時のステータスコードが異常です: %d", res.StatusCode)
+		return nil, makeHTTPError(res.StatusCode, http.MethodPost, loginAuthURL)
 	}
 
 	// servicesのうちログインに特別な操作が必要なものの操作を行う
 	for _, service := range services {
 		switch service {
 		case CT:
-			res, err := client.Get(makeServiceLoginURL(CT))
+			url := makeServiceLoginURL(CT)
+			res, err := client.Get(url)
 			if err != nil {
 				return nil, err
 			}
 			defer res.Body.Close()
 			if res.StatusCode >= 300 {
-				return nil, fmt.Errorf("POST時のステータスコードが異常です: %d", res.StatusCode)
+				return nil, makeHTTPError(res.StatusCode, http.MethodGet, url)
 			}
 		default:
 			// 何もしない
