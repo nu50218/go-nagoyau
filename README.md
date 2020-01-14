@@ -2,6 +2,10 @@
 
 名古屋大学のサービスにログイン済みの*http.Clientを返してくれます
 
+## インストール
+
+`go get github.com/nu50218/go-nagoyau`
+
 ## 使い方
 
 ```go
