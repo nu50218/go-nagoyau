@@ -1,6 +1,7 @@
 package nagoyau
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -61,6 +62,19 @@ func NewClient(username, password string, services ...Service) (*http.Client, er
 	defer res.Body.Close()
 	if res.StatusCode >= 300 {
 		return nil, makeHTTPError(res.StatusCode, http.MethodPost, loginAuthURL)
+	}
+
+	// 認証成功したかをチェックする
+	// CASTGCがクッキーにセットされていたら成功
+	cookies := res.Cookies()
+	foundCASTGC := false
+	for _, cookie := range cookies {
+		if cookie.Name == "CASTGC" {
+			foundCASTGC = true
+		}
+	}
+	if !foundCASTGC {
+		return nil, errors.New("認証に失敗しました")
 	}
 
 	// servicesのうちログインに特別な操作が必要なものの操作を行う
